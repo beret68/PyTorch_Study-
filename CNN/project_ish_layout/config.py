@@ -6,12 +6,13 @@ class TrainingConfig:
     #Model
     lr: float = 0.1
     weight_decay: float = 5e-7
-    epochs: int = 10
+    epochs: int = 25
     num_classes: int = 10
 
     #Data
     batch_size: int = 64
     data_dir: str = "/home/beret/Documents/moje_projekty/pytorch_study/4_Linear_classification/root"
+    num_of_workers = 6
 
     #System
     seed: int = 42

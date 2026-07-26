@@ -31,7 +31,8 @@ def main():
     data_module = FashionMNISTDataModule(
         data_dir=config.data_dir,
         batch_size=config.batch_size,
-        device=config.device
+        device=config.device,
+        num_workers=config.num_of_workers
     )
 
     # 3. Setup model

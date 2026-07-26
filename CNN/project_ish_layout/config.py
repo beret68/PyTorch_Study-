@@ -10,7 +10,7 @@ class TrainingConfig:
     num_classes: int = 10
 
     #Data
-    batch_size: int = 256
+    batch_size: int = 64
     data_dir: str = "/home/beret/Documents/moje_projekty/pytorch_study/4_Linear_classification/root"
 
     #System

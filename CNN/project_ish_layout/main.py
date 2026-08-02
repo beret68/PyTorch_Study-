@@ -1,8 +1,8 @@
 import torch
 import logging
-from config import TrainingConfig
+from hyperparameter_config import TrainingConfig
 from data import FashionMNISTDataModule
-from model import LeNet
+from model import HyperParametrizationLeNET
 from trainer import Trainer
 
 def setup_logger() -> logging.Logger:
@@ -36,11 +36,8 @@ def main():
     )
 
     # 3. Setup model
-    model = LeNet(
-        in_channels=1,
-        num_of_classes=config.num_classes
-    )
-    model.initialize_model(config.device)
+    model = HyperParametrizationLeNET(config=config)
+    model.initialize_model()
 
     # 4. Setup optimizer
     optimizer = torch.optim.SGD(

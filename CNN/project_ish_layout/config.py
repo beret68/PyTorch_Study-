@@ -3,9 +3,10 @@ from dataclasses import dataclass
 
 @dataclass
 class TrainingConfig:
+
     #Model
-    lr: float = 0.1
-    weight_decay: float = 5e-7
+    lr: float = 0.099604
+    weight_decay: float = 8.371515026065028e-09
     epochs: int = 25
     num_classes: int = 10
 

@@ -21,7 +21,7 @@ class Trainer:
             pred = self.model(X)
             loss = self.loss_fn(pred, y)
 
-            self.optimizer.zero_grad()
+            self.optimizer.zero_grad(set_to_none=True)
             loss.backward()
             self.optimizer.step()
 
@@ -55,3 +55,17 @@ class Trainer:
                 self.best_acc = val_acc
                 torch.save(self.model.state_dict(), self.config.save_path)
                 self.logger.info(f" New best model saved! (Acc: {self.best_acc * 100:.2f}%")
+
+#Function used in hyper parametrization by Optuna.
+    def train(self) -> float:
+        best_acc = 0.0
+        for epoch in range(self.config.epochs):
+
+            self.train_epoch()
+            val_acc = self.validate()
+
+            #Save best_acc
+            if val_acc > self.best_acc:
+                best_acc = val_acc
+
+        return best_acc

@@ -3,8 +3,8 @@ import torch
 class Trainer:
     def __init__(self, model, data, config, logger, optimizer, loss_fn):
         self.model = model
-        self.train_loader = data.get_training_data
-        self.validation_loader = data.get_validation_data
+        self.train_loader = data.get_training_data()
+        self.validation_loader = data.get_validation_data()
         self.config = config
         self.logger = logger
         self.optimizer = optimizer

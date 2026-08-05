@@ -1,8 +1,9 @@
 import logging
 import torch
+from torch import nn
 from config import TrainingConfig
 from data import FashionMNIST
-from model import AnyNet
+from model import RegNet
 from trainer import Trainer
 
 def set_up_logger() -> logging.Logger:
@@ -33,4 +34,32 @@ def main():
         input_shape=config.input_shape
     )
 
-    model = AnyNet
+    model = RegNet(
+        config.depths, config.in_channels, config.out_channels, config.group_width, config.bottleneck_multiplier,
+        config.input_channels, config.stem_channels, config.num_classes, config.lr
+    )
+
+    model.initialize_model(config.device)
+
+    optimizer = torch.optim.SGD(
+        params=model.parameters(),
+        lr=config.lr,
+        weight_decay=config.weight_decay
+    )
+
+    loss_fn = nn.CrossEntropyLoss()
+
+    trainer = Trainer(
+        model=model,
+        data=data_module, #TODO This part has a low cohesion. Should be split into 'train_data' and 'validation_data'
+        config=config,
+        logger=logger,
+        optimizer=optimizer,
+        loss_fn=loss_fn
+
+    )
+
+    trainer.fit()
+
+if __name__ == "__main__":
+    main()

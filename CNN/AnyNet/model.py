@@ -40,7 +40,7 @@ class ResNextBLK(nn.Module):
         return F.relu(Y + X)
 
 class AnyNet(nn.Module):
-    def __init__(self, arch, input_channels, stem_channels, num_classes=10, lr=0.1):
+    def __init__(self, arch, input_channels, stem_channels, num_classes=10, lr=0.1): #TODO I ahve no idea wh I coppied the lr here but it was there in a notebook I am learning from.
         super().__init__()
         self.net = nn.Sequential(self.stem(input_channels, stem_channels), self.body(arch))
         self.net.add_module("head", nn.Sequential(
@@ -77,15 +77,17 @@ class AnyNet(nn.Module):
 
 
 def initialize_xavier(module: nn.Module):
-    if isinstance(module, (nn.Conv2d, nn.LazyConv2d, nn.Linear, nn.LazyLinear, nn.BatchNorm2d, nn.LazyBatchNorm2d)):
+    if isinstance(module, (nn.Conv2d, nn.LazyConv2d, nn.Linear, nn.LazyLinear)):
         nn.init.xavier_normal_(module.weight)
+    elif isinstance(module, (nn.BatchNorm2d, nn.LazyBatchNorm2d)):
+        nn.init.normal_(module.weight)
 
 
 class RegNet(AnyNet):
-    def __init__(self, depths: list, in_channels: list, out_channels: list, groups, bottleneck_multiplier,
+    def __init__(self, depths: tuple, in_channels: tuple, out_channels: tuple, groups_width, bottleneck_multiplier,
                  input_channels, stem_channels, num_classes=10, lr=0.1):
         arch = []
         for depth, in_channels, out_channels in zip(depths, in_channels, out_channels):
-            arch.append((depth, in_channels, out_channels, groups, bottleneck_multiplier))
+            arch.append((depth, in_channels, out_channels, groups_width, bottleneck_multiplier))
 
-        super().__init__(*arch, input_channels, stem_channels, num_classes, lr)
+        super().__init__(arch, input_channels, stem_channels, num_classes, lr)

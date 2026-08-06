@@ -1,8 +1,5 @@
-from random import shuffle
-
 import torch
 import torchvision
-from torch.utils.data._utils import pin_memory
 from torchvision import transforms
 
 class DeviceDataLoader:

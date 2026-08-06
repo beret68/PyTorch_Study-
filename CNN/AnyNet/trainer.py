@@ -1,13 +1,14 @@
 import torch
 
 class Trainer:
-    def __init__(self, model, data, config, logger, optimizer, loss_fn):
+    def __init__(self, model, data, config, logger, optimizer, scheduler, loss_fn):
         self.model = model
         self.train_loader = data.get_training_data()
         self.validation_loader = data.get_validation_data()
         self.config = config
         self.logger = logger
         self.optimizer = optimizer
+        self.scheduler = scheduler
         self.loss_fn = loss_fn
 
     def fit(self):
@@ -19,6 +20,8 @@ class Trainer:
             self.fit_epoch()
             val_acc = self.validation()
 
+            #Scheduler step so the learning rate can be changed with every epoch
+            self.scheduler.step()
             # checkpointing saving the best current model
             if val_acc > self.best_acc:
                 self.best_acc = val_acc

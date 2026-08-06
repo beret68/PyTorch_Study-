@@ -146,7 +146,7 @@ def initialize_kaiming(module: nn.Module):
             # Kaiming should be used with ReLu()
             nn.init.kaiming_normal_(module.weight, mode="fan_out", nonlinearity="relu")
         if module.bias is not None:
-            nn.init.constant(module.bias, 0.0)
+            nn.init.constant_(module.bias, 0.0)
 
     #Handle Batch Norms
     elif isinstance(module, (nn.BatchNorm2d, nn.LazyBatchNorm2d)):

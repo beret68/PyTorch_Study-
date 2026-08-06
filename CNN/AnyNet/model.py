@@ -140,10 +140,17 @@ class AnyNet(nn.Module):
 
 def initialize_xavier(module: nn.Module):
     if isinstance(module, (nn.Conv2d, nn.LazyConv2d, nn.Linear, nn.LazyLinear)):
-        nn.init.xavier_normal_(module.weight)
-    elif isinstance(module, (nn.BatchNorm2d, nn.LazyBatchNorm2d)):
-        nn.init.normal_(module.weight)
+        if module.weight is not None:
+            nn.init.xavier_normal_(module.weight)
+        if module.bias is not None:
+            nn.init.constant(module.bias, 0.0)
 
+    #
+    elif isinstance(module, (nn.BatchNorm2d, nn.LazyBatchNorm2d)):
+        if module.weight is not None:
+            nn.init.constant_(module.weight, 1.0)
+        if module.bias is not None:
+            nn.init.constant_(module.bias, 0.0)
 
 class RegNet(AnyNet):
     def __init__(

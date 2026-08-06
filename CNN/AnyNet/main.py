@@ -36,16 +36,30 @@ def main():
 
     model = RegNet(
         config.depths, config.in_channels, config.out_channels, config.group_width, config.bottleneck_multiplier,
-        config.input_channels, config.stem_channels, config.num_classes, config.lr
+        config.input_channels, config.stem_channels, config.num_classes
     )
 
     model.initialize_model(config.device)
+    # Changing the optimizer as sugggested by LLM (lol)
+    # optimizer = torch.optim.SGD(
+    #     params=model.parameters(),
+    #     lr=config.lr,
+    #     weight_decay=config.weight_decay
+    # )
 
-    optimizer = torch.optim.SGD(
+    optimizer = torch.optim.AdamW(
         params=model.parameters(),
-        lr=config.lr,
-        weight_decay=config.weight_decay
+        lr=1e-3,
+        weight_decay=1e-2
     )
+
+    #learning rate scheduler again added as suggested by LLM
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+        optimizer,
+        T_max=config.epochs,
+        eta_min=1e-6
+    )
+
 
     loss_fn = nn.CrossEntropyLoss()
 
@@ -55,8 +69,8 @@ def main():
         config=config,
         logger=logger,
         optimizer=optimizer,
+        scheduler=scheduler,
         loss_fn=loss_fn
-
     )
 
     trainer.fit()

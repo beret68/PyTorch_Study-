@@ -135,17 +135,20 @@ class AnyNet(nn.Module):
 
     def initialize_model(self, device: torch.device):
         self.to(device)
-        self.apply(initialize_xavier)
+        self.apply(initialize_kaiming)
 
 
-def initialize_xavier(module: nn.Module):
+def initialize_kaiming(module: nn.Module):
+    #Handle Conv and Linear layers
     if isinstance(module, (nn.Conv2d, nn.LazyConv2d, nn.Linear, nn.LazyLinear)):
         if module.weight is not None:
-            nn.init.xavier_normal_(module.weight)
+            # Turn out xavier used for TanH and Sigmoid
+            # Kaiming should be used with ReLu()
+            nn.init.kaiming_normal_(module.weight, mode="fan_out", nonlinearity="relu")
         if module.bias is not None:
             nn.init.constant(module.bias, 0.0)
 
-    #
+    #Handle Batch Norms
     elif isinstance(module, (nn.BatchNorm2d, nn.LazyBatchNorm2d)):
         if module.weight is not None:
             nn.init.constant_(module.weight, 1.0)

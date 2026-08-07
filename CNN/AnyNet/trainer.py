@@ -1,21 +1,23 @@
 import torch
 
 class Trainer:
-    def __init__(self, model, data, config, logger, optimizer, scheduler, loss_fn):
+    def __init__(self, model, train_loader, validation_loader, epochs, save_path, logger, optimizer, scheduler, loss_fn, device):
         self.model = model
-        self.train_loader = data.get_training_data()
-        self.validation_loader = data.get_validation_data()
-        self.config = config
+        self.train_loader = train_loader
+        self.validation_loader = validation_loader
+        self.epochs = epochs
+        self.save_path = save_path
         self.logger = logger
         self.optimizer = optimizer
         self.scheduler = scheduler
         self.loss_fn = loss_fn
+        self.device = device
 
     def fit(self):
-        self.logger.info(f"Starting training on {self.config.device} for {self.config.epochs} epochs")
+        self.logger.info(f"Starting training on {self.device} for {self.epochs} epochs")
 
-        for epoch in range(self.config.epochs):
-            self.logger.info(f"--- Epoch {epoch + 1}/{self.config.epochs} ---")
+        for epoch in range(self.epochs):
+            self.logger.info(f"--- Epoch {epoch + 1}/{self.epochs} ---")
 
             self.fit_epoch()
             val_acc = self.validation()
@@ -25,7 +27,7 @@ class Trainer:
             # checkpointing saving the best current model
             if val_acc > self.best_acc:
                 self.best_acc = val_acc
-                torch.save(self.model.state_dict(), self.config.save_path)
+                torch.save(self.model.state_dict(), self.save_path)
                 self.logger.info(f" New best model saved! (Acc: {self.best_acc * 100:.2f}%")
 
     def fit_epoch(self):

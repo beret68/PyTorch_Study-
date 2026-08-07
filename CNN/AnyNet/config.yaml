@@ -1,0 +1,25 @@
+experiment:
+  seed: 42
+  save_path: "AnyNet.pth"
+
+data:
+    batch_size: 128
+    data_dir: "/home/beret/Documents/moje_projekty/pytorch_study/4_Linear_classification/root"
+    num_workers: 6
+    input_shape: [96, 96]
+
+training:
+    lr : 0.01
+    weight_decay: 5e-7
+    epochs: 10
+    eta_min: 1e-6
+
+model:
+    num_classes: 10
+    input_channels: 1
+    stem_channels: 32
+    depths: [4, 6]
+    in_channels: [32, 32]
+    out_channels: [32, 80]
+    group_width: 16
+    bottleneck_multiplier: 1

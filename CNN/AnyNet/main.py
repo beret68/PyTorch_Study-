@@ -1,7 +1,9 @@
+import argparse
 import logging
 import torch
 from torch import nn
-from config import TrainingConfig
+# from config import TrainingConfig
+from omegaconf import OmegaConf
 from data import FashionMNIST
 from model import RegNet
 from trainer import Trainer
@@ -20,26 +22,51 @@ def set_seed(seed: int) -> None:
     if torch.cuda.is_available():
         torch.cuda.manual_seed(seed)
 
-def main():
-    config = TrainingConfig
+def resolve_device(cli_device: str) -> torch.device:
+    if cli_device != "auto":
+        return torch.device(cli_device)
+
+    if torch.cuda.is_available():
+        return torch.device("cuda")
+    elif hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
+        return torch.device("mps")  # Apple Silicon
+    return torch.device("cpu")
+
+def main(cfg_path: str = "config.yaml"):
+
+    # config = TrainingConfig
+    config = OmegaConf.load(cfg_path)
     logger = set_up_logger()
 
-    set_seed(config.seed)
+    set_seed(config.experiment.seed)
+
+    # Execution CLI
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--device", type=str, default="auto", help="cuda, cpu, mps, or cuda:1")
+    args = parser.parse_args()
+
+    device = resolve_device(args.device)
 
     data_module = FashionMNIST(
-        dir = config.data_dir,
-        batch_size=config.batch_size,
-        device=config.device,
-        num_of_workers=config.num_workers,
-        input_shape=config.input_shape
+        dir = config.data.data_dir,
+        batch_size=config.data.batch_size,
+        device=device,
+        num_of_workers=config.data.num_workers,
+        input_shape=tuple(config.data.input_shape)
     )
 
     model = RegNet(
-        config.depths, config.in_channels, config.out_channels, config.group_width, config.bottleneck_multiplier,
-        config.input_channels, config.stem_channels, config.num_classes
+        depths=config.model.depths,
+        in_channels=config.model.in_channels,
+        out_channels=config.model.out_channels,
+        groups_width=config.model.group_width,
+        bottleneck_multiplier=config.model.bottleneck_multiplier,
+        input_channels=config.model.input_channels,
+        stem_channels=config.model.stem_channels,
+        num_classes=config.model.num_classes
     )
 
-    model.initialize_model(config.device)
+    model.initialize_model(device)
     # Changing the optimizer as sugggested by LLM (lol)
     # optimizer = torch.optim.SGD(
     #     params=model.parameters(),
@@ -49,15 +76,15 @@ def main():
 
     optimizer = torch.optim.AdamW(
         params=model.parameters(),
-        lr=1e-3,
-        weight_decay=1e-2
+        lr=config.training.lr,
+        weight_decay=config.training.weight_decay
     )
 
     #learning rate scheduler again added as suggested by LLM
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
         optimizer,
-        T_max=config.epochs,
-        eta_min=1e-6
+        T_max=config.training.epochs,
+        eta_min=config.training.eta_min
     )
 
 
@@ -65,12 +92,15 @@ def main():
 
     trainer = Trainer(
         model=model,
-        data=data_module, #TODO This part has a low cohesion. Should be split into 'train_data' and 'validation_data'
-        config=config,
+        train_loader=data_module.get_training_data(),
+        validation_loader=data_module.get_validation_data(),
+        epochs=config.training.epochs,
+        save_path=config.experiment.save_path,
         logger=logger,
         optimizer=optimizer,
         scheduler=scheduler,
-        loss_fn=loss_fn
+        loss_fn=loss_fn,
+        device=device,
     )
 
     trainer.fit()

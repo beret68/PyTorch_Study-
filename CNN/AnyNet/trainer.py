@@ -12,6 +12,7 @@ class Trainer:
         self.scheduler = scheduler
         self.loss_fn = loss_fn
         self.device = device
+        self.best_acc = 0.0
 
     def fit(self):
         self.logger.info(f"Starting training on {self.device} for {self.epochs} epochs")

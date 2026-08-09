@@ -1,9 +1,8 @@
-import argparse
 import logging
 import torch
 from torch import nn
-# from config import TrainingConfig
-from omegaconf import OmegaConf
+import hydra
+from omegaconf import DictConfig
 from data import FashionMNIST
 from model import RegNet
 from trainer import Trainer
@@ -25,31 +24,26 @@ def set_seed(seed: int) -> None:
 def resolve_device(cli_device: str) -> torch.device:
     if cli_device != "auto":
         return torch.device(cli_device)
-
     if torch.cuda.is_available():
         return torch.device("cuda")
     elif hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
         return torch.device("mps")  # Apple Silicon
     return torch.device("cpu")
 
-def main(cfg_path: str = "config.yaml"):
+@hydra.main(version_base=None, config_path=".", config_name="config")
+def main(config: DictConfig):
 
-    # config = TrainingConfig
-    config = OmegaConf.load(cfg_path)
     logger = set_up_logger()
 
     set_seed(config.experiment.seed)
 
-    # Execution CLI
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--device", type=str, default="auto", help="cuda, cpu, mps, or cuda:1")
-    args = parser.parse_args()
+    device = resolve_device(config.hardware.device)
 
-    device = resolve_device(args.device)
+    print(f"Running on device {device}")
 
     data_module = FashionMNIST(
         dir = config.data.data_dir,
-        batch_size=config.data.batch_size,
+        batch_size=config.training.batch_size,
         device=device,
         num_of_workers=config.data.num_workers,
         input_shape=tuple(config.data.input_shape)

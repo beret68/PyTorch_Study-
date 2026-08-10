@@ -1,8 +1,9 @@
 import logging
 import torch
+import wandb
 from torch import nn
 import hydra
-from omegaconf import DictConfig
+from omegaconf import DictConfig, OmegaConf
 from data import FashionMNIST
 from model import RegNet
 from trainer import Trainer
@@ -33,12 +34,14 @@ def resolve_device(cli_device: str) -> torch.device:
 @hydra.main(version_base=None, config_path=".", config_name="config")
 def main(config: DictConfig):
 
-    logger = set_up_logger()
-
+    # logger = set_up_logger()
     set_seed(config.experiment.seed)
-
     device = resolve_device(config.hardware.device)
 
+    wandb.init(
+        project=config.experiment.project_name,
+        config=OmegaConf.to_container(config, resolve=True)
+    )
     print(f"Running on device {device}")
 
     data_module = FashionMNIST(
@@ -90,14 +93,17 @@ def main(config: DictConfig):
         validation_loader=data_module.get_validation_data(),
         epochs=config.training.epochs,
         save_path=config.experiment.save_path,
-        logger=logger,
+        # logger=logger,
         optimizer=optimizer,
         scheduler=scheduler,
         loss_fn=loss_fn,
         device=device,
+        config=config
     )
 
     trainer.fit()
+
+    wandb.finish()
 
 if __name__ == "__main__":
     main()

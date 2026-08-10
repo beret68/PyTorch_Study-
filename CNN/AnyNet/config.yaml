@@ -1,12 +1,12 @@
 experiment:
   seed: 42
   save_path: "AnyNet.pth"
-
+  project_name: "regnet-fashionmnist-v2"
 hardware:
   device: "cuda"
 
 data:
-    data_dir: "/home/beret/Documents/moje_projekty/pytorch_study/4_Linear_classification/root"
+    data_dir: "./root"
     num_workers: 6
     input_shape: [96, 96]
 
